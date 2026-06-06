@@ -1,7 +1,16 @@
 # ============================================================
-# Program Name : IOT Post-Cardiac Surgery Recovery Console
-# Description  : Simulating real-life health inputs from 3 sensors and 3 actuators
-#                and map to registers and memory.
+# Course Title : 	Computer Architecture & Assembly Language
+# Course Code : 	BICS 2304
+# Section : 		02
+# Project Title : 	IOT Post-Cardiac Surgery Recovery Console
+#
+# Group Name : Nexus
+# Group Members :
+#		MUKHRIZ BIN FAIZAL IBRAHIM	2410063
+#		NABIL ALIF BIN AZMI 		2415845
+# 		MUHAMMAD FAIZ BIN MOHD FAUZI	2419753
+#		MUHAMMAD FAIZ DANIAL BIN AZHAR	2419385
+#
 # ============================================================
 
 .data
@@ -24,7 +33,7 @@ unit_temp: .asciiz " °C"
 
 # Memory Mapped Registers
 oxygen_reg:   .float 0.0
-heart_reg:    .word 0 # integer
+heart_reg:    .word 0 
 pressure_reg: .float 0.0
 temp_reg:     .float 0.0
 
@@ -115,7 +124,7 @@ StoreToMemory:
 DisplayConsole:
 	# Actuator: Console Display 7" IPS Capacitive Touchscreen
 	
-	#  ----------------  Health Summary  ---------------- 
+	#  ----------------  Daily Health Summary  ---------------- 
 	li $v0, 4
 	la $a0, summary_msg
 	syscall
