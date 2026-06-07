@@ -46,12 +46,22 @@ emergency_msg: .asciiz "[ALERT] Emergency alert activated"
 telelink_msg:  .asciiz "[ALERT] Tele-link alert activated"
 physician_msg: .asciiz "[ALERT] Physician notified"
 
-# Limit
+# Limits for Logic Comparisons
 oxygen_limit:       .float 94.0
 hr_lower_limit:     .float 50.0
 hr_upper_limit:     .float 120.0
 bp_systolic_limit:  .float 140.0
 bp_diastolic_limit: .float 90.0
+
+# Input Validation Bounds
+ox_min_bound:       .float 50.0
+ox_max_bound:       .float 100.0
+hr_min_bound:       .float 20.0
+hr_max_bound:       .float 250.0
+bpsys_min_bound:    .float 50.0
+bpsys_max_bound:    .float 250.0
+bpdia_min_bound:    .float 30.0
+bpdia_max_bound:    .float 150.0
 
 # Data for String Conversion
 float_10: .float 10.0         # Used to extract decimal places
@@ -95,31 +105,68 @@ PrintWelcome:
 	
 ReadSensors:
 	# MAX30102 High-Sensitivity Pulse Oximeter and Heart-Rate Sensor for Wearable Health
-	# ---------------- Oxygen ----------------
-	li $v0, 52
+	
+	# ---------------- Oxygen Input Loop [50.0 - 100.0] ----------------
+prompt_ox_loop:
+	li $v0, 52                 # Syscall 52: Float Input Dialog Box
 	la $a0, prompt_ox
 	syscall
-	mov.s $f2, $f0 # $f2 = oxygen register
+	# Validation boundary flags
+	lwc1 $f1, ox_min_bound
+	lwc1 $f3, ox_max_bound
+	c.lt.s $f0, $f1            # If input < 50.0, condition flag set to true
+	bc1t prompt_ox_loop        # Force re-prompt
+	c.lt.s $f3, $f0            # If 100.0 < input, condition flag set to true
+	bc1t prompt_ox_loop        # Force re-prompt
 	
-	# ---------------- Heart Rate ----------------
-	li $v0, 52
+	mov.s $f2, $f0             # Verified safe: save to global allocation register
+	
+	# ---------------- Heart Rate Input Loop [20.0 - 250.0] ----------------
+prompt_hr_loop:
+	li $v0, 52                 # Syscall 52: Float Input Dialog Box
 	la $a0, prompt_hr
 	syscall
-	mov.s $f4, $f0 # $f4 = heart register
+	# Validation boundary flags
+	lwc1 $f1, hr_min_bound
+	lwc1 $f3, hr_max_bound
+	c.lt.s $f0, $f1            # If input < 20.0, condition flag set to true
+	bc1t prompt_hr_loop        # Force re-prompt
+	c.lt.s $f3, $f0            # If 250.0 < input, condition flag set to true
+	bc1t prompt_hr_loop        # Force re-prompt
+	
+	mov.s $f4, $f0             # Verified safe: save to global allocation register
 
 	# MPX5050GP Pressure Sensor 
-	# ---------------- Blood Pressure ----------------
-	# Get Systolic Reading
-	li $v0, 52
+	
+	# ---------------- Blood Pressure (Systolic) Input Loop [50.0 - 250.0] ----------------
+prompt_bpsys_loop:
+	li $v0, 52                 # Syscall 52: Float Input Dialog Box
 	la $a0, prompt_bpsys
 	syscall
-	mov.s $f6, $f0 # $f6 = systolic pressure register
+	# Validation boundary flags
+	lwc1 $f1, bpsys_min_bound
+	lwc1 $f3, bpsys_max_bound
+	c.lt.s $f0, $f1            # If input < 50.0, condition flag set to true
+	bc1t prompt_bpsys_loop     # Force re-prompt
+	c.lt.s $f3, $f0            # If 250.0 < input, condition flag set to true
+	bc1t prompt_bpsys_loop     # Force re-prompt
+	
+	mov.s $f6, $f0             # Verified safe: save to global allocation register
 
-	# Get Diastolic Reading
-	li $v0, 52
+	# ---------------- Blood Pressure (Diastolic) Input Loop [30.0 - 150.0] ----------------
+prompt_bpdia_loop:
+	li $v0, 52                 # Syscall 52: Float Input Dialog Box
 	la $a0, prompt_bpdia
 	syscall
-	mov.s $f8, $f0 # $f8 = diastolic pressure register
+	# Validation boundary flags
+	lwc1 $f1, bpdia_min_bound
+	lwc1 $f3, bpdia_max_bound
+	c.lt.s $f0, $f1            # If input < 30.0, condition flag set to true
+	bc1t prompt_bpdia_loop     # Force re-prompt
+	c.lt.s $f3, $f0            # If 150.0 < input, condition flag set to true
+	bc1t prompt_bpdia_loop     # Force re-prompt
+	
+	mov.s $f8, $f0             # Verified safe: save to global allocation register
 
 	jr $ra 
 
